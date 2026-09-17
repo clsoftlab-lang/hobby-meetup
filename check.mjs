@@ -50,6 +50,14 @@ if (data.meetups && data.hosts && data.categories) {
 console.log("[2] JS syntax (node --check)");
 const jsFiles = readdirSync(join(ROOT, "js")).filter((f) => f.endsWith(".js")).map((f) => join("js", f));
 jsFiles.push("check.mjs");
+// AI-KIT: also syntax-check ai/ and server/ sources.
+for (const dir of ["ai", "server"]) {
+  let entries = [];
+  try { entries = readdirSync(join(ROOT, dir)); } catch { /* dir optional */ }
+  for (const f of entries) {
+    if (f.endsWith(".js") || f.endsWith(".mjs")) jsFiles.push(join(dir, f));
+  }
+}
 for (const rel of jsFiles) {
   try {
     execFileSync(process.execPath, ["--check", join(ROOT, rel)], { stdio: "pipe" });
@@ -116,6 +124,43 @@ if (data.meetups) {
   assert(ranked[0].meetup.category === "hiking", "top recommendation matches the interest");
   assert(maxScore() > 0, "maxScore is positive");
 }
+
+// ---- 5. AI-KIT safety ---------------------------------------------------
+console.log("[5] AI-KIT");
+try {
+  const { AI_ENDPOINT } = await import("./ai/config.js");
+  assert(AI_ENDPOINT === "", "ai/config.js ships AI_ENDPOINT empty (demo=mock, no key path)");
+} catch (e) {
+  fail("import ai/config.js: " + e.message);
+}
+try {
+  const ai = await import("./ai/ai.js");
+  assert(typeof ai.askAI === "function", "ai/ai.js exports askAI()");
+} catch (e) {
+  fail("import ai/ai.js: " + e.message);
+}
+// Scan repo source for a real Anthropic key format (must find none).
+// The pattern is built by concatenation so this scanner never matches itself.
+const KEY_RE = new RegExp("sk-" + "ant-[A-Za-z0-9_-]{20,}");
+const TEXT_EXT = [".js", ".mjs", ".cjs", ".json", ".html", ".css", ".md", ".yml", ".yaml", ".example", ".env", ".txt"];
+const SKIP_DIRS = new Set(["node_modules", ".git", ".cache", "dist"]);
+function walk(dir) {
+  let out = [];
+  for (const name of readdirSync(dir, { withFileTypes: true })) {
+    if (SKIP_DIRS.has(name.name)) continue;
+    const full = join(dir, name.name);
+    if (name.isDirectory()) out = out.concat(walk(full));
+    else if (TEXT_EXT.some((e) => name.name.endsWith(e))) out.push(full);
+  }
+  return out;
+}
+let leaked = [];
+for (const file of walk(ROOT)) {
+  let content = "";
+  try { content = readFileSync(file, "utf8"); } catch { continue; }
+  if (KEY_RE.test(content)) leaked.push(file.slice(ROOT.length + 1));
+}
+assert(leaked.length === 0, leaked.length ? `no real API key committed (found in: ${leaked.join(", ")})` : "no real API key committed in repo sources");
 
 // ---- summary ------------------------------------------------------------
 console.log("");

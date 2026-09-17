@@ -1,0 +1,18 @@
+{
+  "name": "gatchihaeyo-ai-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Optional server-side Claude proxy for 같이해요 (keeps the API key off the browser).",
+  "license": "Apache-2.0",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0"
+  }
+}

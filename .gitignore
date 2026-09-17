@@ -1,6 +1,11 @@
 # dependencies (none required — this is a no-build static app)
 node_modules/
 
+# secrets — API keys live in server/.env, never in the repo
+.env
+*.env
+!*.env.example
+
 # logs / temp
 *.log
 npm-debug.log*

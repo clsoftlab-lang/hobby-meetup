@@ -64,6 +64,44 @@
 정렬은 점수 내림차순, **모집 중 → 마감** 순, 그다음 날짜순. 매치 퍼센트 = 점수/최대점수.
 점수 함수는 순수 함수이며 `check.mjs`에서 단위 테스트합니다.
 
+## 🤖 AI 기능 (API 연동)
+
+작고 교체 가능한 **AI-KIT**(`ai/config.js`, `ai/ai.js`)를 함께 제공합니다. 세 가지 기능
+모두 건전·안전 프레이밍을 유지하며 기본 상태로 바로 동작합니다.
+
+- **AI 모임 추천 챗봇** — 관심사·지역을 한국어로 자유롭게 입력하면, 앱의 데이터와
+  [`js/matcher.js`](js/matcher.js)를 활용해 공개·소규모 모임을 추천해요.
+- **아이스브레이커 · 모임 소개글 생성** — 모임 소개글 초안과 아이스브레이커 질문을 만들어요.
+- **취향 매칭 설명** — 왜 이 모임이 나와 잘 맞는지 자연어로 설명해요.
+
+상단 **🤖 AI** 탭에서 사용해 보세요. 모든 기능은 **공개·소규모 취미 그룹 모임**만 다루며,
+**유료 데이트·연애/거래성 매칭·회원 간 금전 거래는 다루지 않습니다.**
+
+**데모 = Mock (키 없음, 완전 오프라인).** `ai/config.js`의 `AI_ENDPOINT`가 빈 문자열이면
+(기본값) 결정론적 한국어 **MockProvider**가 앱의 모임/호스트 데이터와 규칙 기반 매처를
+재사용해 답합니다. 어떤 것도 브라우저를 벗어나지 않아요.
+
+**실제 Claude 연동**은 선택 프록시([`server/`](server/))로 활성화합니다.
+
+```bash
+cd server
+npm install
+cp .env.example .env          # .env 는 git-ignore 됩니다
+# ANTHROPIC_API_KEY 에 실제 키(sk-ant-...) 입력
+npm start                     # POST /api/ai, claude-opus-5 스트리밍
+```
+
+그다음 프론트엔드에서 엔드포인트를 지정합니다 (`ai/config.js`):
+
+```js
+export const AI_ENDPOINT = "http://localhost:8787/api/ai";
+```
+
+서버가 `process.env.ANTHROPIC_API_KEY`로 Claude(모델 `claude-opus-5`)를 호출해 응답을
+스트리밍합니다. **🔒 API 키는 서버에만 둡니다 — 브라우저나 저장소에는 절대 넣지 않습니다.**
+`.gitignore`가 `.env`를 제외하며, `node check.mjs`는 `AI_ENDPOINT`가 비어 있는지 확인하고
+모든 소스에서 실제 키 형식을 검사합니다.
+
 ## 로컬 실행
 
 빌드/의존성 없음. ES 모듈과 `fetch` 때문에 HTTP로 서빙해야 합니다.

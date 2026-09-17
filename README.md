@@ -79,6 +79,45 @@ percentage is `score / maxScore`. The scoring functions are pure and unit-tested
   that any fee is a shared/at-cost amount — **never a payment to a host** and never a
   transactional/romantic arrangement.
 
+## 🤖 AI 기능 (API 연동)
+
+The app ships a small, pluggable **AI-KIT** (`ai/config.js`, `ai/ai.js`) with three
+wholesome, safety-framed features — all working out of the box:
+
+- **AI 모임 추천 챗봇** — type interests/region in plain Korean; the assistant suggests
+  public small-group meetups using the app's own data + [`js/matcher.js`](js/matcher.js).
+- **아이스브레이커 · 모임 소개글 생성** — draft an intro blurb + icebreaker questions for a meetup.
+- **취향 매칭 설명** — explain, in natural language, *why* a recommendation fits you.
+
+Try them on the **🤖 AI** tab. Every feature keeps the wholesome boundary: public
+small-group hobby meetups only — **no paid dating, no romantic/transactional matching,
+no money transfer between members.**
+
+**Demo = mock (no key, fully offline).** With `AI_ENDPOINT` empty (the shipped default in
+`ai/config.js`), a deterministic Korean **MockProvider** answers by reusing the app's
+meetups/hosts and the rule-based matcher. Nothing leaves the browser.
+
+**Enable real Claude** via the optional proxy in [`server/`](server/):
+
+```bash
+cd server
+npm install
+cp .env.example .env          # .env is git-ignored
+# put your key (sk-ant-...) in ANTHROPIC_API_KEY
+npm start                     # POST /api/ai, streams claude-opus-5
+```
+
+Then point the frontend at it in `ai/config.js`:
+
+```js
+export const AI_ENDPOINT = "http://localhost:8787/api/ai";
+```
+
+The server calls Claude (model `claude-opus-5`) with `process.env.ANTHROPIC_API_KEY` and
+streams the reply. **🔒 The API key stays server-side only — it is NEVER placed in the
+browser or committed to the repo.** `.gitignore` excludes `.env`, and `node check.mjs`
+asserts `AI_ENDPOINT` is empty and scans every source file for a real key format.
+
 ## Run locally
 
 No build step, no dependencies. Serve the folder over HTTP (ES modules + `fetch` need it):
@@ -111,6 +150,12 @@ hobby-meetup/
 │  ├─ matcher.js         # rule-based recommendation engine (pure, tested)
 │  ├─ storage.js         # localStorage persistence (try/catch + reset)
 │  └─ svg.js             # inline SVG avatars & activity art
+├─ ai/                   # pluggable AI-KIT (demo=mock, real via backend)
+│  ├─ config.js          # AI_ENDPOINT ("" = offline mock; URL = backend proxy)
+│  └─ ai.js              # askAI(task,payload,{onToken}) — mock reuses matcher
+├─ server/               # OPTIONAL Claude proxy (keeps the API key off the browser)
+│  ├─ index.mjs          # @anthropic-ai/sdk, POST /api/ai → streams claude-opus-5
+│  ├─ package.json · .env.example · README.md
 ├─ data/
 │  ├─ categories.json    # 9 hobby categories
 │  ├─ hosts.json         # 20 fictional hosts

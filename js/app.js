@@ -6,6 +6,7 @@
 import * as store from "./storage.js";
 import { recommend, groupBucket } from "./matcher.js";
 import { avatarSVG, bannerSVG } from "./svg.js";
+import { askAI, aiMode } from "../ai/ai.js";
 
 const state = {
   meetups: [],
@@ -427,10 +428,155 @@ function showRecommendations(survey) {
             </div>
           </a>
           <ul class="reasons">${r.reasons.map((x)=>`<li>✔ ${esc(x)}</li>`).join("")}</ul>
+          <div class="ai-explain">
+            <button type="button" class="btn ghost small-btn" data-ai-explain="${esc(m.id)}">🤖 AI 설명</button>
+            <div class="ai-explain-out ai-out" hidden></div>
+          </div>
         </div>`;
       }).join("")}
     </div>`;
   box.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // AI: explain a recommendation in natural language (mock unless AI_ENDPOINT set)
+  box.querySelectorAll("[data-ai-explain]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-ai-explain");
+      const r = ranked.find((x) => x.meetup.id === id);
+      if (!r) return;
+      const out = btn.parentElement.querySelector(".ai-explain-out");
+      btn.disabled = true;
+      out.hidden = false;
+      out.textContent = "";
+      try {
+        await askAI("explainMatch", {
+          survey,
+          meetup: r.meetup,
+          category: catOf(r.meetup),
+          reasons: r.reasons,
+          percent: r.percent,
+          categoriesById: state.categoriesById
+        }, { onToken: (t) => { out.textContent += t; } });
+      } catch (err) {
+        out.textContent = "AI 설명을 불러오지 못했어요: " + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+// ---- AI shared context -------------------------------------------------
+// The mock provider reuses these (and js/matcher.js); the backend receives
+// the same payload with functions stripped out.
+function aiContext(extra = {}) {
+  return {
+    meetups: allMeetups(),
+    hostsById: state.hostsById,
+    categoriesById: state.categoriesById,
+    categories: state.categories,
+    getJoined: currentJoined,
+    ...extra
+  };
+}
+
+// ---- view: ai (chatbot + icebreaker) -----------------------------------
+function renderAI() {
+  const mode = aiMode();
+  const cats = state.categories;
+  app().innerHTML = `
+  <h1>AI 도우미 🤖</h1>
+  <p class="muted">취미 모임을 더 쉽게 찾고 소개할 수 있게 도와드려요.
+    현재 <strong>${mode === "live" ? "실시간 AI(백엔드 연동)" : "데모(오프라인 Mock)"}</strong> 모드예요.</p>
+  <div class="ai-note tip">🛡️ 같이해요 AI는 <strong>공개·소규모 취미 그룹 모임</strong>만 다뤄요.
+    유료 데이트·연애·금전 거래는 다루지 않아요.</div>
+
+  <section class="ai-block">
+    <h2>💬 AI 모임 추천 챗봇</h2>
+    <p class="muted small">관심 취미와 지역을 자유롭게 적어보세요. 예) "주말에 서울에서 등산 초보 모임 있을까요?"</p>
+    <div id="ai-chat" class="ai-chat" aria-live="polite"></div>
+    <form id="ai-chat-form" class="ai-inputrow">
+      <input id="ai-chat-input" type="text" autocomplete="off"
+        placeholder="어떤 취미로 만나고 싶으세요?" />
+      <button class="btn primary" type="submit">보내기</button>
+    </form>
+    <div class="ai-quick">
+      ${["등산 초보 모임 추천해줘","서울에서 보드게임 같이 할 사람","주말 사진출사 어디 없나요"]
+        .map((q)=>`<button type="button" class="chip ai-quick-btn" data-q="${esc(q)}">${esc(q)}</button>`).join("")}
+    </div>
+  </section>
+
+  <section class="ai-block">
+    <h2>✍️ 아이스브레이커 · 모임 소개글 생성</h2>
+    <p class="muted small">모임을 하나 고르면 소개글 초안과 아이스브레이커 질문을 만들어 드려요.</p>
+    <div class="ai-inputrow">
+      <select id="ai-ib-select">
+        ${allMeetups().slice(0, 40).map((m)=>`<option value="${esc(m.id)}">${catOf(m).emoji} ${esc(m.title)} · ${esc(m.region)}</option>`).join("")}
+      </select>
+      <button id="ai-ib-btn" class="btn primary" type="button">생성하기</button>
+    </div>
+    <pre id="ai-ib-out" class="ai-out" hidden></pre>
+  </section>`;
+
+  const chat = $("#ai-chat");
+  const addMsg = (who, text) => {
+    const el = document.createElement("div");
+    el.className = "ai-msg " + who;
+    el.textContent = text;
+    chat.appendChild(el);
+    chat.scrollTop = chat.scrollHeight;
+    return el;
+  };
+  addMsg("bot", "안녕하세요! 어떤 취미로 사람들과 만나고 싶으세요? 관심사와 지역을 알려주세요. 🌿");
+
+  async function sendChat(text) {
+    const q = text.trim();
+    if (!q) return;
+    addMsg("me", q);
+    const out = addMsg("bot", "");
+    out.classList.add("streaming");
+    try {
+      await askAI("recommend", aiContext({ message: q }), { onToken: (t) => {
+        out.textContent += t; chat.scrollTop = chat.scrollHeight;
+      }});
+    } catch (err) {
+      out.textContent = "죄송해요, 답변을 가져오지 못했어요: " + err.message;
+    } finally {
+      out.classList.remove("streaming");
+    }
+  }
+
+  $("#ai-chat-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = $("#ai-chat-input");
+    const v = input.value;
+    input.value = "";
+    sendChat(v);
+  });
+  app().querySelectorAll(".ai-quick-btn").forEach((b) => {
+    b.addEventListener("click", () => sendChat(b.getAttribute("data-q")));
+  });
+
+  $("#ai-ib-btn").addEventListener("click", async () => {
+    const id = $("#ai-ib-select").value;
+    const m = findMeetup(id);
+    if (!m) return;
+    const out = $("#ai-ib-out");
+    const btn = $("#ai-ib-btn");
+    btn.disabled = true;
+    out.hidden = false;
+    out.textContent = "";
+    try {
+      await askAI("icebreaker", {
+        meetup: m,
+        category: catOf(m),
+        categoriesById: state.categoriesById
+      }, { onToken: (t) => { out.textContent += t; } });
+    } catch (err) {
+      out.textContent = "생성에 실패했어요: " + err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
 }
 
 // ---- view: mine --------------------------------------------------------
@@ -490,6 +636,7 @@ function router() {
     case "meetup": renderDetail(param); break;
     case "create": renderCreate(); break;
     case "match": renderMatch(); break;
+    case "ai": renderAI(); break;
     case "mine": renderMine(); break;
     case "safety": renderSafety(); break;
     case "explore":
