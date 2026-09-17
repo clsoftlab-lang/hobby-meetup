@@ -1,0 +1,202 @@
+[
+  {
+    "id": "h01",
+    "name": "김민준",
+    "avatarSeed": 13,
+    "mannerTemp": 36,
+    "rating": 4.2,
+    "verified": false,
+    "reviewsCount": 5,
+    "bio": "주말마다 새로운 사람들과 취미를 나누는 걸 좋아해요."
+  },
+  {
+    "id": "h02",
+    "name": "이서연",
+    "avatarSeed": 60,
+    "mannerTemp": 36.7,
+    "rating": 4.5,
+    "verified": true,
+    "reviewsCount": 16,
+    "bio": "처음 오시는 분도 편하게 어울릴 수 있게 챙겨요."
+  },
+  {
+    "id": "h03",
+    "name": "박도윤",
+    "avatarSeed": 107,
+    "mannerTemp": 37.4,
+    "rating": 4.8,
+    "verified": true,
+    "reviewsCount": 27,
+    "bio": "안전하고 즐거운 모임을 지향합니다."
+  },
+  {
+    "id": "h04",
+    "name": "최하은",
+    "avatarSeed": 154,
+    "mannerTemp": 38.1,
+    "rating": 4.3,
+    "verified": false,
+    "reviewsCount": 38,
+    "bio": "천천히, 함께, 꾸준히가 모토예요."
+  },
+  {
+    "id": "h05",
+    "name": "정지호",
+    "avatarSeed": 201,
+    "mannerTemp": 38.8,
+    "rating": 4.6,
+    "verified": true,
+    "reviewsCount": 9,
+    "bio": "소규모로 알차게 진행하는 걸 선호해요."
+  },
+  {
+    "id": "h06",
+    "name": "강수아",
+    "avatarSeed": 248,
+    "mannerTemp": 36.5,
+    "rating": 4.9,
+    "verified": true,
+    "reviewsCount": 20,
+    "bio": "누구나 부담 없이 참여하도록 진행합니다."
+  },
+  {
+    "id": "h07",
+    "name": "조예준",
+    "avatarSeed": 295,
+    "mannerTemp": 37.2,
+    "rating": 4.4,
+    "verified": false,
+    "reviewsCount": 31,
+    "bio": "주말마다 새로운 사람들과 취미를 나누는 걸 좋아해요."
+  },
+  {
+    "id": "h08",
+    "name": "윤지우",
+    "avatarSeed": 342,
+    "mannerTemp": 37.9,
+    "rating": 4.7,
+    "verified": true,
+    "reviewsCount": 42,
+    "bio": "처음 오시는 분도 편하게 어울릴 수 있게 챙겨요."
+  },
+  {
+    "id": "h09",
+    "name": "장현우",
+    "avatarSeed": 29,
+    "mannerTemp": 38.6,
+    "rating": 4.2,
+    "verified": true,
+    "reviewsCount": 13,
+    "bio": "안전하고 즐거운 모임을 지향합니다."
+  },
+  {
+    "id": "h10",
+    "name": "임서윤",
+    "avatarSeed": 76,
+    "mannerTemp": 36.3,
+    "rating": 4.5,
+    "verified": false,
+    "reviewsCount": 24,
+    "bio": "천천히, 함께, 꾸준히가 모토예요."
+  },
+  {
+    "id": "h11",
+    "name": "김은우",
+    "avatarSeed": 123,
+    "mannerTemp": 37,
+    "rating": 4.8,
+    "verified": true,
+    "reviewsCount": 35,
+    "bio": "소규모로 알차게 진행하는 걸 선호해요."
+  },
+  {
+    "id": "h12",
+    "name": "이다은",
+    "avatarSeed": 170,
+    "mannerTemp": 37.7,
+    "rating": 4.3,
+    "verified": true,
+    "reviewsCount": 6,
+    "bio": "누구나 부담 없이 참여하도록 진행합니다."
+  },
+  {
+    "id": "h13",
+    "name": "박시우",
+    "avatarSeed": 217,
+    "mannerTemp": 38.4,
+    "rating": 4.6,
+    "verified": false,
+    "reviewsCount": 17,
+    "bio": "주말마다 새로운 사람들과 취미를 나누는 걸 좋아해요."
+  },
+  {
+    "id": "h14",
+    "name": "최채원",
+    "avatarSeed": 264,
+    "mannerTemp": 36.1,
+    "rating": 4.9,
+    "verified": true,
+    "reviewsCount": 28,
+    "bio": "처음 오시는 분도 편하게 어울릴 수 있게 챙겨요."
+  },
+  {
+    "id": "h15",
+    "name": "정건우",
+    "avatarSeed": 311,
+    "mannerTemp": 36.8,
+    "rating": 4.4,
+    "verified": true,
+    "reviewsCount": 39,
+    "bio": "안전하고 즐거운 모임을 지향합니다."
+  },
+  {
+    "id": "h16",
+    "name": "강유진",
+    "avatarSeed": 358,
+    "mannerTemp": 37.5,
+    "rating": 4.7,
+    "verified": false,
+    "reviewsCount": 10,
+    "bio": "천천히, 함께, 꾸준히가 모토예요."
+  },
+  {
+    "id": "h17",
+    "name": "조준서",
+    "avatarSeed": 45,
+    "mannerTemp": 38.2,
+    "rating": 4.2,
+    "verified": true,
+    "reviewsCount": 21,
+    "bio": "소규모로 알차게 진행하는 걸 선호해요."
+  },
+  {
+    "id": "h18",
+    "name": "윤소율",
+    "avatarSeed": 92,
+    "mannerTemp": 38.9,
+    "rating": 4.5,
+    "verified": true,
+    "reviewsCount": 32,
+    "bio": "누구나 부담 없이 참여하도록 진행합니다."
+  },
+  {
+    "id": "h19",
+    "name": "장연우",
+    "avatarSeed": 139,
+    "mannerTemp": 36.6,
+    "rating": 4.8,
+    "verified": false,
+    "reviewsCount": 43,
+    "bio": "주말마다 새로운 사람들과 취미를 나누는 걸 좋아해요."
+  },
+  {
+    "id": "h20",
+    "name": "임가은",
+    "avatarSeed": 186,
+    "mannerTemp": 37.3,
+    "rating": 4.3,
+    "verified": true,
+    "reviewsCount": 14,
+    "bio": "처음 오시는 분도 편하게 어울릴 수 있게 챙겨요."
+  }
+]

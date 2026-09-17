@@ -1,0 +1,17 @@
+# dependencies (none required — this is a no-build static app)
+node_modules/
+
+# logs / temp
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+*.swp
+
+# OS / misc
+.cache/
+dist/

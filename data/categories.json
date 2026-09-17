@@ -1,0 +1,65 @@
+[
+  {
+    "id": "hiking",
+    "name": "등산",
+    "emoji": "🥾",
+    "energy": "high",
+    "blurb": "함께 오르며 자연을 즐겨요"
+  },
+  {
+    "id": "boardgame",
+    "name": "보드게임",
+    "emoji": "🎲",
+    "energy": "low",
+    "blurb": "가볍게 모여 두뇌를 굴려요"
+  },
+  {
+    "id": "running",
+    "name": "러닝",
+    "emoji": "🏃",
+    "energy": "high",
+    "blurb": "같이 뛰면 더 멀리 갈 수 있어요"
+  },
+  {
+    "id": "exhibition",
+    "name": "전시관람",
+    "emoji": "🖼️",
+    "energy": "low",
+    "blurb": "작품을 보고 감상을 나눠요"
+  },
+  {
+    "id": "study",
+    "name": "스터디",
+    "emoji": "📚",
+    "energy": "low",
+    "blurb": "함께 배우고 성장해요"
+  },
+  {
+    "id": "photography",
+    "name": "사진출사",
+    "emoji": "📷",
+    "energy": "mid",
+    "blurb": "좋은 풍경을 함께 담아요"
+  },
+  {
+    "id": "cooking",
+    "name": "요리클래스",
+    "emoji": "🍳",
+    "energy": "mid",
+    "blurb": "만들고 나누는 즐거움"
+  },
+  {
+    "id": "cycling",
+    "name": "자전거",
+    "emoji": "🚲",
+    "energy": "high",
+    "blurb": "바람을 가르며 라이딩"
+  },
+  {
+    "id": "climbing",
+    "name": "클라이밍",
+    "emoji": "🧗",
+    "energy": "high",
+    "blurb": "한 홀드씩 함께 올라가요"
+  }
+]

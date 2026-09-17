@@ -1,0 +1,44 @@
+<!doctype html>
+<!--
+  SPDX-License-Identifier: Apache-2.0
+  Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)
+-->
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>같이해요 — 취미로 만나는 건전한 모임</title>
+  <meta name="description" content="등산·러닝·보드게임·전시·스터디·사진출사·요리 등 공개·소규모 취미 모임을 찾고 만드는 건전한 친구 매칭 데모 앱." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🌿</text></svg>" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header id="topbar">
+    <a class="brand" href="#/explore">🌿 같이해요</a>
+    <nav id="topnav" aria-label="주요 메뉴">
+      <a data-route href="#/explore">탐색</a>
+      <a data-route href="#/match">취향매칭</a>
+      <a data-route href="#/create">모임만들기</a>
+      <a data-route href="#/mine">내모임</a>
+      <a data-route href="#/safety">안전</a>
+    </nav>
+    <div class="topbar-actions">
+      <button id="theme-toggle" class="icon-btn" title="라이트/다크 전환" aria-label="테마 전환">🌓</button>
+      <button id="reset-btn" class="icon-btn" title="데모 데이터 초기화" aria-label="초기화">♻️</button>
+    </div>
+  </header>
+
+  <div id="demo-banner">🧪 <strong>데모 모드</strong> — 가상의 모임/호스트이며 데이터는 이 브라우저(localStorage)에만 저장됩니다. 실제 계정·개인정보·결제 없음.</div>
+
+  <main id="app" aria-live="polite"><!-- views render here --></main>
+
+  <footer id="footer">
+    <p>같이해요 · 건전한 취미 기반 모임 데모. <strong>유료 데이트·금전 거래 아님.</strong></p>
+    <p class="muted small">Apache-2.0 · Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국) · Not an official Anthropic product.</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
