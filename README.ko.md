@@ -88,7 +88,7 @@ cd server
 npm install
 cp .env.example .env          # .env 는 git-ignore 됩니다
 # ANTHROPIC_API_KEY 에 실제 키(sk-ant-...) 입력
-npm start                     # POST /api/ai, claude-opus-5 스트리밍
+npm start                     # POST /api/ai, claude-haiku-4-5(기본) 스트리밍
 ```
 
 그다음 프론트엔드에서 엔드포인트를 지정합니다 (`ai/config.js`):
@@ -97,10 +97,51 @@ npm start                     # POST /api/ai, claude-opus-5 스트리밍
 export const AI_ENDPOINT = "http://localhost:8787/api/ai";
 ```
 
-서버가 `process.env.ANTHROPIC_API_KEY`로 Claude(모델 `claude-opus-5`)를 호출해 응답을
-스트리밍합니다. **🔒 API 키는 서버에만 둡니다 — 브라우저나 저장소에는 절대 넣지 않습니다.**
-`.gitignore`가 `.env`를 제외하며, `node check.mjs`는 `AI_ENDPOINT`가 비어 있는지 확인하고
-모든 소스에서 실제 키 형식을 검사합니다.
+서버가 `process.env.ANTHROPIC_API_KEY`로 Claude(기본 모델 `claude-haiku-4-5`, `AI_MODEL`로
+변경 가능)를 호출해 응답을 스트리밍합니다. **🔒 API 키는 서버에만 둡니다 — 브라우저나
+저장소에는 절대 넣지 않습니다.** `.gitignore`가 `.env`를 제외하며, `node check.mjs`는
+`AI_ENDPOINT`가 비어 있는지 확인하고 모든 소스에서 실제 키 형식을 검사합니다.
+비용 모델과 무료 Cloudflare 배포는 아래 **⚙️ 고도화**를 참고하세요.
+
+## ⚙️ 고도화 — 무인·저비용 실 AI 연동
+
+이 고도화는 데모의 오프라인 Mock은 그대로 두면서, 실제 AI 경로를 **저비용·무인(스스로
+돌아가는)** 방식으로 만듭니다.
+
+**비용 모델.** 프록시는 기본으로 **`claude-haiku-4-5`**(약 **$1 / $5 per MTok** 입력/출력)를
+쓰고, 안정적인 태스크별 시스템 프롬프트에 **프롬프트 캐싱**을 적용하며, **~700 토큰의
+출력 상한**과 **월간 토큰 예산**(`AI_MONTHLY_TOKEN_CAP`, 기본 2,000,000)을 둡니다. 품질이
+필요하면 언제든 `AI_MODEL=claude-sonnet-5` 또는 `claude-opus-5`로 올릴 수 있어요.
+
+**요청 1,000건당 대략 비용.** 요청 하나가 대략 입력 1~2K + 출력 0.3K 토큰이면 Haiku 기준
+**약 $2~4 / 1,000건** 수준이며, 프롬프트 캐싱으로 반복되는 시스템 프롬프트 입력 비용이
+더 줄어듭니다. (Sonnet/Opus는 그에 비례해 더 듭니다.)
+
+**비용 가드레일.** IP당 요청 제한(약 20/분)과 월간 토큰 상한으로 지출을 보호하며, 초과 시
+프록시는 **HTTP 429 `{fallback:true}`**를 반환합니다.
+
+**무인(절대 멈추지 않음).** 백엔드 오류·요청 제한·연결 불가 시 프론트엔드는 **자동으로
+오프라인 Mock으로 폴백**합니다 — 키도 서버도 없이 앱이 계속 동작합니다(`ai/ai.js`).
+
+**무료 원클릭 배포(Cloudflare Workers).** `server/worker.js` + `server/wrangler.toml`로 같은
+프록시를 Cloudflare 무료 티어에서 돌릴 수 있어요 — 관리할 서버가 없습니다:
+
+```bash
+npm i -g wrangler
+cd server
+wrangler secret put ANTHROPIC_API_KEY   # 키는 Worker 시크릿으로만 보관
+wrangler deploy
+```
+
+그다음 `ai/config.js`의 `AI_ENDPOINT`를 Worker 주소(끝에 `/api/ai`)로 지정하세요.
+
+**자율 기능.** **탐색** 화면은 로드 시 **"이번 주 추천 모임"** 다이제스트를 `askAI` + 규칙
+기반 매처로 자동 생성합니다. 오프라인 Mock으로도 동작하고, 백엔드가 설정되면 실제 Claude로
+자연스럽게 올라갑니다.
+
+> **🔒 API 키는 서버에만 — 브라우저나 저장소에는 절대.** 키는 프록시의 `.env`(git-ignore)나
+> Worker 시크릿에만 존재하며, `node check.mjs`가 모든 소스에서 실제 키 형식을 검사하고
+> `AI_ENDPOINT`가 빈 값으로 배포되는지 확인합니다.
 
 ## 로컬 실행
 

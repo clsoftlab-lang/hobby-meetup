@@ -140,6 +140,14 @@ function renderExplore() {
     </div>
   </section>
 
+  <section id="weekly-digest" class="weekly-digest" aria-label="이번 주 추천 모임 (AI 자동 생성)">
+    <div class="weekly-head">
+      <h2>🗓️ 이번 주 추천 모임</h2>
+      <span class="ai-tag" title="AI가 자동으로 생성해요">${aiMode() === "live" ? "🤖 AI" : "🤖 AI · 데모"}</span>
+    </div>
+    <p id="weekly-out" class="weekly-out muted" aria-live="polite">이번 주 어울리는 모임을 골라보고 있어요…</p>
+  </section>
+
   <section class="filters" aria-label="모임 필터">
     <input id="f-q" type="search" placeholder="🔎 제목·태그·활동 검색" value="${esc(f.q)}" />
     <select id="f-cat">
@@ -171,6 +179,42 @@ function renderExplore() {
   $("#f-region").addEventListener("change", (e) => { f.region = e.target.value; renderExplore(); });
   $("#f-diff").addEventListener("change", (e) => { f.difficulty = e.target.value; renderExplore(); });
   $("#f-sort").addEventListener("change", (e) => { f.sort = e.target.value; renderExplore(); });
+
+  // Autonomous, on-load "이번 주 추천 모임" digest (mock works offline).
+  runWeeklyDigest();
+}
+
+// Upcoming, open meetups within the next 7 days (broadens to the nearest
+// upcoming open meetups if this week is quiet), used by the weekly digest.
+function upcomingWeekMeetups() {
+  const start = today();
+  const d = new Date(); d.setDate(d.getDate() + 7);
+  const end = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const open = allMeetups().filter((m) => !isPast(m) && !isFull(m));
+  const thisWeek = open.filter((m) => m.date <= end);
+  const pool = thisWeek.length ? thisWeek : open;
+  return pool.sort((a, b) => a.date.localeCompare(b.date)).slice(0, 12);
+}
+
+// AUTONOMOUS FEATURE: on load, ask the AI (mock offline / backend if configured)
+// to summarize this week's recommended meetups, built from the matcher engine.
+async function runWeeklyDigest() {
+  const out = $("#weekly-out");
+  if (!out) return;
+  const meetups = upcomingWeekMeetups();
+  if (!meetups.length) {
+    out.textContent = "이번 주에 바로 참여할 수 있는 모임이 아직 없어요. 아래에서 둘러보거나 모임을 만들어 보세요. 🌿";
+    return;
+  }
+  out.textContent = "";
+  try {
+    await askAI("weeklyDigest", aiContext({ meetups, survey: store.getSurvey() || undefined }), {
+      onToken: (t) => { out.textContent += t; }
+    });
+  } catch {
+    // 무인: never break the page even if something unexpected happens.
+    out.textContent = "이번 주 추천을 잠시 불러오지 못했어요. 아래 목록에서 모임을 둘러보세요. 🌿";
+  }
 }
 function refreshGrid() {
   // lightweight re-filter without rebuilding inputs (keeps search focus)

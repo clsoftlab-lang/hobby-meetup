@@ -104,7 +104,7 @@ cd server
 npm install
 cp .env.example .env          # .env is git-ignored
 # put your key (sk-ant-...) in ANTHROPIC_API_KEY
-npm start                     # POST /api/ai, streams claude-opus-5
+npm start                     # POST /api/ai, streams claude-haiku-4-5 (default)
 ```
 
 Then point the frontend at it in `ai/config.js`:
@@ -113,10 +113,52 @@ Then point the frontend at it in `ai/config.js`:
 export const AI_ENDPOINT = "http://localhost:8787/api/ai";
 ```
 
-The server calls Claude (model `claude-opus-5`) with `process.env.ANTHROPIC_API_KEY` and
-streams the reply. **🔒 The API key stays server-side only — it is NEVER placed in the
-browser or committed to the repo.** `.gitignore` excludes `.env`, and `node check.mjs`
-asserts `AI_ENDPOINT` is empty and scans every source file for a real key format.
+The server calls Claude (default model `claude-haiku-4-5`, configurable via `AI_MODEL`) with
+`process.env.ANTHROPIC_API_KEY` and streams the reply. **🔒 The API key stays server-side
+only — it is NEVER placed in the browser or committed to the repo.** `.gitignore` excludes
+`.env`, and `node check.mjs` asserts `AI_ENDPOINT` is empty and scans every source file for
+a real key format. See **⚙️ 고도화** below for the cost model and the free Cloudflare deploy.
+
+## ⚙️ 고도화 — 무인·저비용 실 AI 연동
+
+This upgrade makes the real-AI path **cost-efficient and self-running (무인)**, while the
+demo still works fully offline via the mock.
+
+**Cost model.** The proxy defaults to **`claude-haiku-4-5`** (about **$1 / $5 per MTok**
+in/out) with **prompt caching** on the stable per-task system prompt, a modest **~700-token
+output cap**, and a **monthly token budget** (`AI_MONTHLY_TOKEN_CAP`, default 2,000,000).
+Raise quality any time with `AI_MODEL=claude-sonnet-5` or `claude-opus-5`.
+
+**Rough cost per 1,000 requests.** A typical request is ~1–2K input + ~0.3K output tokens.
+At Haiku pricing that is on the order of **$2–4 per 1,000 requests**, and prompt caching
+trims the repeated system-prompt input further. (Sonnet/Opus cost proportionally more.)
+
+**Cost guardrails.** A per-IP rate limit (~20/min) plus the monthly token cap protect spend;
+when either is exceeded the proxy returns **HTTP 429 `{fallback:true}`**.
+
+**무인 (never breaks).** If the backend errors, is rate-limited, or is unreachable, the
+frontend **auto-falls back to the offline mock** — the app keeps working with no key and no
+server (`ai/ai.js`).
+
+**Free one-deploy (Cloudflare Workers).** `server/worker.js` + `server/wrangler.toml` run
+the same proxy on Cloudflare's free tier — no server to babysit:
+
+```bash
+npm i -g wrangler
+cd server
+wrangler secret put ANTHROPIC_API_KEY   # key stays a Worker secret
+wrangler deploy
+```
+
+Then set `ai/config.js` `AI_ENDPOINT` to the Worker URL (ending in `/api/ai`).
+
+**Autonomous feature.** The **Explore** page auto-generates an **"이번 주 추천 모임"**
+(this-week digest) on load via `askAI` + the rule-based matcher, so it works offline with
+the mock and upgrades to real Claude when a backend is configured.
+
+> **🔒 API keys are server-side only — never in the browser or repo.** The key lives only in
+> the proxy's `.env` (git-ignored) or the Worker secret; `node check.mjs` scans every source
+> for a real key format and asserts `AI_ENDPOINT` ships empty.
 
 ## Run locally
 

@@ -48,7 +48,21 @@ export async function askAI(task, payload = {}, { onToken } = {}) {
   if (!endpoint) {
     return mockAnswer(task, payload, onToken);
   }
-  return backendAnswer(endpoint, task, payload, onToken);
+  // 무인(never-breaks): if the backend fails / returns 429 {fallback:true} /
+  // network error BEFORE any token streams, quietly fall back to the offline
+  // mock so the app keeps working. Streaming still flows through onToken.
+  const started = { hit: false };
+  const guardedOnToken = onToken
+    ? (t) => { started.hit = true; onToken(t); }
+    : undefined;
+  try {
+    return await backendAnswer(endpoint, task, payload, guardedOnToken);
+  } catch (err) {
+    if (!started.hit && (err && err.fallback)) {
+      return mockAnswer(task, payload, onToken);
+    }
+    throw err;
+  }
 }
 
 // Expose which provider is active so the UI can label the demo honestly.
@@ -67,11 +81,17 @@ async function backendAnswer(endpoint, task, payload, onToken) {
       body: JSON.stringify({ task, payload: stripFunctions(payload) })
     });
   } catch (err) {
-    throw new Error("AI 서버에 연결하지 못했어요: " + err.message);
+    // Network error → signal a fallback to the mock (app never breaks).
+    const e = new Error("AI 서버에 연결하지 못했어요: " + err.message);
+    e.fallback = true;
+    throw e;
   }
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    throw new Error(`AI 서버 오류 (${res.status}) ${detail}`.trim());
+    // Any non-OK (incl. 429 {fallback:true}) → fall back to the offline mock.
+    const e = new Error(`AI 서버 오류 (${res.status}) ${detail}`.trim());
+    e.fallback = true;
+    throw e;
   }
   // Stream the plain-text body chunk by chunk.
   if (res.body && typeof res.body.getReader === "function") {
@@ -109,9 +129,10 @@ async function mockAnswer(task, payload, onToken) {
   let text;
   switch (task) {
     case "recommend": text = mockRecommend(payload); break;
+    case "weeklyDigest": text = mockWeeklyDigest(payload); break;
     case "icebreaker": text = mockIcebreaker(payload); break;
     case "explainMatch": text = mockExplainMatch(payload); break;
-    default: text = "지원하지 않는 요청이에요. (recommend · icebreaker · explainMatch 중 하나를 사용하세요.)";
+    default: text = "지원하지 않는 요청이에요. (recommend · weeklyDigest · icebreaker · explainMatch 중 하나를 사용하세요.)";
   }
   await streamOut(text, onToken);
   return text;
@@ -229,6 +250,44 @@ function mockRecommend(payload) {
   });
   lines.push("");
   lines.push("🛡️ 첫 만남은 공개된 장소·낮 시간·여럿이 함께를 권해요. 마음에 드는 모임을 눌러 상세를 확인해 보세요!");
+  return lines.join("\n");
+}
+
+// -- autonomous task: weekly digest ("이번 주 추천 모임") --
+// Runs the same rule-based matcher over a caller-supplied set of upcoming/open
+// meetups. Works fully offline; the app calls this on load.
+function mockWeeklyDigest(payload) {
+  const meetups = payload.meetups || [];
+  const hostsById = payload.hostsById || {};
+  const categoriesById = payload.categoriesById || {};
+  const getJoined = typeof payload.getJoined === "function" ? payload.getJoined : null;
+  const cats = categoryList(payload);
+
+  // Prefer the member's saved taste survey; otherwise treat every category as an
+  // interest so the matcher can still surface this week's best open meetups.
+  const saved = payload.survey && Array.isArray(payload.survey.interests) && payload.survey.interests.length
+    ? payload.survey
+    : { interests: cats.map((c) => c.id), activityLevel: "mid", groupPref: "any", regions: [], difficulty: "any" };
+  const survey = normalizeSurvey(saved);
+
+  const ranked = recommend(survey, meetups, hostsById, categoriesById, getJoined)
+    .filter((r) => !r.full)
+    .slice(0, 3);
+
+  if (!ranked.length) {
+    return "이번 주에 바로 참여할 수 있는 공개·소규모 모임이 아직 없어요. ‘탐색’에서 더 둘러보거나 직접 모임을 만들어 보세요. 🌿";
+  }
+
+  const lines = ["이번 주, 이런 모임은 어때요? 🌿", ""];
+  ranked.forEach((r, i) => {
+    const m = r.meetup;
+    const cat = categoriesById[m.category] || {};
+    const reason = (r.reasons && r.reasons[0]) || "지금 참여하기 좋아요";
+    lines.push(`${i + 1}. ${cat.emoji || "🎯"} ${m.title} — ${m.region} · ${m.date} ${m.time}`);
+    lines.push(`   · ${reason}`);
+  });
+  lines.push("");
+  lines.push("🛡️ 첫 만남은 공개된 장소·낮 시간·여럿이 함께!");
   return lines.join("\n");
 }
 

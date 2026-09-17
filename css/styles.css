@@ -210,6 +210,18 @@ h3 { margin: 0 0 .3em; font-size: 1.02rem; }
 .small-btn { padding: .35rem .6rem; font-size: .82rem; }
 .ai-explain-out { margin-top: .5rem; font-size: .85rem; }
 
+/* autonomous "이번 주 추천 모임" digest (on-load, AI/mock) */
+.weekly-digest { background: var(--surface); border: 1px solid var(--border);
+  border-left: 4px solid var(--accent); border-radius: var(--radius);
+  padding: .9rem 1rem; margin-bottom: 1.2rem; box-shadow: var(--shadow); }
+.weekly-head { display: flex; align-items: center; gap: .5rem; }
+.weekly-head h2 { margin: 0; font-size: 1.05rem; }
+.ai-tag { margin-left: auto; font-size: .72rem; color: var(--muted);
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 999px; padding: .12rem .55rem; white-space: nowrap; }
+.weekly-out { white-space: pre-wrap; word-break: break-word; margin: .5rem 0 0;
+  font-size: .9rem; line-height: 1.55; color: var(--text); }
+
 /* responsive */
 @media (min-width: 560px) {
   .filters { grid-template-columns: 2fr 1fr 1fr 1fr 1fr; }
